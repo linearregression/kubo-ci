@@ -47,19 +47,16 @@ ENV PATH /usr/local/ruby-install/bin:/usr/local/bin:$PATH
 RUN ruby-install --system ruby 2.3.3
 
 # Credhub
-RUN wget https://github.com/pivotal-cf/credhub-cli/releases/download/1.0.0/credhub-linux-1.0.0.tgz \
-  -O credhub-linux-1.0.0.tgz && tar xvf credhub-linux-1.0.0.tgz && mv credhub /usr/bin
+RUN wget https://github.com/cloudfoundry-incubator/credhub-cli/releases/download/1.4.0/credhub-linux-1.4.0.tgz \
+  -O credhub-linux-1.4.0.tgz && tar xvf credhub-linux-1.4.0.tgz && mv credhub /usr/bin
 
 # kubectl
-RUN wget https://storage.googleapis.com/kubernetes-release/release/v1.6.6/bin/linux/amd64/kubectl -O /usr/bin/kubectl && \
+RUN wget https://storage.googleapis.com/kubernetes-release/release/v1.7.1/bin/linux/amd64/kubectl -O /usr/bin/kubectl && \
   chmod +x /usr/bin/kubectl
 
 # Direnv
 RUN wget -O /usr/local/bin/direnv https://github.com/direnv/direnv/releases/download/v2.12.2/direnv.linux-amd64 && \
   chmod +x /usr/local/bin/direnv
-
-# Cleanup
-RUN rm -rf /tmp/docker-build
 
 # BOSH CLI
 RUN wget https://s3.amazonaws.com/bosh-cli-artifacts/bosh-cli-2.0.27-linux-amd64 && \
@@ -68,3 +65,6 @@ RUN wget https://s3.amazonaws.com/bosh-cli-artifacts/bosh-cli-2.0.27-linux-amd64
 
 # Openstack CLI
 RUN pip install python-openstackclient
+
+# Cleanup
+RUN rm -rf /tmp/docker-build && rm -rf /var/lib/apt/lists/*

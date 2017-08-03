@@ -35,11 +35,11 @@ TLS_KUBERNETES_PRIVATE_KEY=$(bosh-cli int <(credhub get -n "${director_name}/${D
 export TLS_KUBERNETES_CERT TLS_KUBERNETES_PRIVATE_KEY
 
 if [[ ${routing_mode} == "cf" ]]; then
-  KUBERNETES_SERVICE_HOST=$(bosh-cli int "${KUBO_ENVIRONMENT_DIR}/director.yml" --path="/cf-tcp-router-name")
-  KUBERNETES_SERVICE_PORT=$(bosh-cli int "${KUBO_ENVIRONMENT_DIR}/director.yml" --path="/external-kubo-port")
-  WORKLOAD_TCP_PORT=$(expr "$(bosh-cli int "${KUBO_ENVIRONMENT_DIR}/director.yml" --path="/external-kubo-port")" + 1000)
-  INGRESS_CONTROLLER_TCP_PORT=$(expr "$(bosh-cli int "${KUBO_ENVIRONMENT_DIR}/director.yml" --path="/external-kubo-port")" + 2000)
-  TCP_ROUTER_DNS_NAME=$(bosh-cli int "${KUBO_ENVIRONMENT_DIR}/director.yml" --path="/cf-tcp-router-name")
+  KUBERNETES_SERVICE_HOST=$(bosh-cli int "${KUBO_ENVIRONMENT_DIR}/director.yml" --path="/kubernetes_master_host")
+  KUBERNETES_SERVICE_PORT=$(bosh-cli int "${KUBO_ENVIRONMENT_DIR}/director.yml" --path="/kubernetes_master_port")
+  WORKLOAD_TCP_PORT=$(expr "$(bosh-cli int "${KUBO_ENVIRONMENT_DIR}/director.yml" --path="/kubernetes_master_port")" + 1000)
+  INGRESS_CONTROLLER_TCP_PORT=$(expr "$(bosh-cli int "${KUBO_ENVIRONMENT_DIR}/director.yml" --path="/kubernetes_master_port")" + 2000)
+  TCP_ROUTER_DNS_NAME=$(bosh-cli int "${KUBO_ENVIRONMENT_DIR}/director.yml" --path="/kubernetes_master_host")
   CF_APPS_DOMAIN=$(bosh-cli int "${KUBO_ENVIRONMENT_DIR}/director.yml" --path="/routing-cf-app-domain-name")
   export KUBERNETES_SERVICE_HOST KUBERNETES_SERVICE_PORT WORKLOAD_TCP_PORT INGRESS_CONTROLLER_TCP_PORT TCP_ROUTER_DNS_NAME CF_APPS_DOMAIN
 
@@ -54,8 +54,8 @@ elif [[ ${routing_mode} == "iaas" ]]; then
   export WORKLOAD_ADDRESS WORKLOAD_PORT
   ginkgo "$GOPATH/src/integration-tests/workload"
 elif [[ ${routing_mode} == "proxy" ]]; then
-  WORKLOAD_ADDRESS=$(call_bosh -d "${DEPLOYMENT_NAME}" vms --column=Instance --column=IPs | grep 'worker/' | head -1 | awk '{print $2}')
-  WORKLOAD_PORT=$(bosh-cli int "${GIT_KUBO_CI}/specs/nginx.yml" --path="/spec/ports/0/nodePort")
+  WORKLOAD_ADDRESS=$(bosh-cli int "${KUBO_ENVIRONMENT_DIR}/director.yml" --path="/worker_haproxy_ip_addresses/0")
+  WORKLOAD_PORT=$(bosh-cli int "${KUBO_ENVIRONMENT_DIR}/director.yml" --path="/worker_haproxy_tcp_frontend_port")
   export WORKLOAD_ADDRESS WORKLOAD_PORT
 
   ginkgo "$GOPATH/src/integration-tests/workload"
