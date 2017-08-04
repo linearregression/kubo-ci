@@ -56,40 +56,39 @@ var _ = Describe("Deploy workload", func() {
 	                        Timeout: timeout,
 	                }
 	
-	                Eventually(func() int {
-	                       	result, err := httpClient.Get(appUrl)
-	                       	if err != nil {
-	                       	        return -1
-	                       	}
-	                       	return result.StatusCode
-                	}, "120s", "5s").Should(Equal(200))
+                        Eventually(func() string {
+                                result, err := httpClient.Get(appUrl)
+                                if err != nil {
+                                        return err.Error()
+                                }
+                                return result.Status
+                        }, "120s", "5s").Should(Equal("200 OK"))
 		} else {
 			// TODO Once we have inabled cloud provider packages on 
 			// vSphere and AWS, this else block can go away
 			appUrl := fmt.Sprintf("http://%s:%s", workerAddress, nodePort)
-	
+
 			timeout := time.Duration(5 * time.Second)
 			httpClient := http.Client{
 				Timeout: timeout,
 			}
-	
+
 			_, err := httpClient.Get(appUrl)
 			Expect(err).To(HaveOccurred())
-	
+
 			deployNginx := runner.RunKubectlCommand("create", "-f", nginxSpec)
 			Eventually(deployNginx, "60s").Should(gexec.Exit(0))
 			rolloutWatch := runner.RunKubectlCommand("rollout", "status", "deployment/nginx", "-w")
 			Eventually(rolloutWatch, "120s").Should(gexec.Exit(0))
-	
-			Eventually(func() int {
+
+			Eventually(func() string {
 				result, err := httpClient.Get(appUrl)
 				if err != nil {
-					return -1
+					return err.Error()
 				}
-				return result.StatusCode
-			}, "120s", "5s").Should(Equal(200))
+				return result.Status
+			}, "120s", "5s").Should(Equal("200 OK"))
 		}
-
 	})
 
 	AfterEach(func() {
